@@ -1,0 +1,30 @@
+---
+- name: Mount CD-ROM and configure repo
+  hosts: rhel8-demo
+  become: yes
+
+  tasks:
+    # Step 1: Ensure CD-ROM is mounted
+    - name: Mount the CD-ROM
+      mount:
+        path: /mnt/cdrom
+        src: /dev/cdrom
+        fstype: iso9660
+        state: mounted
+
+    # Step 2: Create the repo file
+    - name: Create repo file for CD-ROM
+      copy:
+        dest: /etc/yum.repos.d/cdrom.repo
+        content: |
+          [cdrom]
+          name=CD-ROM
+          baseurl=file:///mnt/cdrom
+          enabled=1
+          gpgcheck=0
+      notify:
+        - Clean Yum Cache
+
+  handlers:
+    - name: Clean Yum Cache
+      command: yum clean all
